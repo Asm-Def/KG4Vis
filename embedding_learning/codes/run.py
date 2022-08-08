@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import random
+import time
 
 import numpy as np
 import torch
@@ -27,6 +28,7 @@ def parse_args(args=None):
     )
 
     parser.add_argument('--cuda', action='store_true', help='use GPU')
+    parser.add_argument('--mps', action='store_true', help='use Apple Sillicon GPU')
     
     parser.add_argument('--do_train', action='store_true')
     
@@ -203,6 +205,8 @@ def main(args):
 
     if args.cuda:
         kge_model = kge_model.cuda()
+    elif args.mps:
+        kge_model = kge_model.to(device=torch.device("mps"))
     
     if args.do_train:
         # Set training dataloader iterator
@@ -251,6 +255,8 @@ def main(args):
     
     step = init_step
     
+    begin_time = time.process_time()
+    last_time = begin_time
     logging.info('Start Training...')
     logging.info('init_step = %d' % init_step)
     logging.info('batch_size = %d' % args.batch_size)
@@ -296,6 +302,9 @@ def main(args):
                 metrics = {}
                 for metric in training_logs[0].keys():
                     metrics[metric] = sum([log[metric] for log in training_logs])/len(training_logs)
+                cur_time = time.process_time()
+                logging.info('{:f} seconds for {:d} steps'.format(cur_time - last_time, args.log_steps))
+                last_time = cur_time
                 log_metrics('Training average', step, metrics)
                 training_logs = []
                 

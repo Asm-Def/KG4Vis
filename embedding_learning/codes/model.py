@@ -175,6 +175,13 @@ class KGEModel(nn.Module):
             positive_sample = positive_sample.cuda()
             negative_sample = negative_sample.cuda()
             subsampling_weight = subsampling_weight.cuda()
+        elif args.mps:
+            mps_device = torch.device("mps")
+            positive_sample = positive_sample.to(device=mps_device)
+            negative_sample = negative_sample.to(device=mps_device)
+            subsampling_weight = subsampling_weight.to(device=mps_device)
+
+        
 
         negative_score = model((positive_sample, negative_sample), mode=mode)
 
